@@ -1,5 +1,5 @@
-from datetime import datetime as DateTime
-from datetime import time as Time
+from garden_calendar_time.utcdatetime import UTCDateTime as DateTime
+from garden_calendar_time.utcdatetime import UTCTime as Time
 
 import garden_calendar_time.equinox_solstice as es
 

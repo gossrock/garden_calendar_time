@@ -1,26 +1,24 @@
 import csv
 from pathlib import Path
-from datetime import datetime as DateTime
-from datetime import time as Time
-from datetime import date as Date
-from datetime import timedelta as TimeDelta
 from typing import NamedTuple
 from typing import Dict, Callable
 from functools import partial
 
+from garden_calendar_time.utcdatetime import UTCDateTime, Time, TimeDelta
+
 class YearEquinoxSolsticData(NamedTuple):
     year: int
-    march_equinox: DateTime
-    june_solstice: DateTime
-    september_equinox: DateTime
-    december_solstice: DateTime
+    march_equinox: UTCDateTime
+    june_solstice: UTCDateTime
+    september_equinox: UTCDateTime
+    december_solstice: UTCDateTime
 
 
-def parse_iso_date(iso_str) -> DateTime:
+def parse_iso_date(iso_str) -> UTCDateTime:
     date, time = iso_str.split('T')
     year, month, day = date.split('-')
     hour, min, sec = time.split(':')
-    return DateTime(int(year), int(month), int(day), int(hour), int(min), int(sec))
+    return UTCDateTime(int(year), int(month), int(day), int(hour), int(min), int(sec))
 
 
 DATABASE: Dict[int, YearEquinoxSolsticData] = {}
@@ -58,45 +56,45 @@ def year_data(year: int) -> YearEquinoxSolsticData:
 
 
 # specific equinoxes and solstices
-def march_equinox(year: int) -> DateTime:
+def march_equinox(year: int) -> UTCDateTime:
     return year_data(year).march_equinox
 
 
-def june_solstice(year: int) -> DateTime:
+def june_solstice(year: int) -> UTCDateTime:
     return year_data(year).june_solstice
 
 
-def september_equinox(year: int) -> DateTime:
+def september_equinox(year: int) -> UTCDateTime:
     return year_data(year).september_equinox
 
 
-def december_solstice(year:int) -> DateTime:
+def december_solstice(year:int) -> UTCDateTime:
     return year_data(year).december_solstice
 
 
 # seasonal equinoxes and solstices
-def spring_equinox(year: int, latitude: float) -> DateTime:
+def spring_equinox(year: int, latitude: float) -> UTCDateTime:
     if latitude >= 0:
         return march_equinox(year)
     else:
         return september_equinox(year)
 
 
-def summer_solstice(year: int, latitude: float) -> DateTime:
+def summer_solstice(year: int, latitude: float) -> UTCDateTime:
     if latitude >= 0:
         return june_solstice(year)
     else:
         return december_solstice(year)
 
 
-def fall_equinox(year: int, latitude: float) -> DateTime:
+def fall_equinox(year: int, latitude: float) -> UTCDateTime:
     if latitude >= 0:
         return september_equinox(year)
     else:
         return march_equinox(year)
 
 
-def winter_solstice(year: int, latitude: float) -> DateTime:
+def winter_solstice(year: int, latitude: float) -> UTCDateTime:
     if latitude >= 0:
         return december_solstice(year)
     else:
@@ -104,90 +102,90 @@ def winter_solstice(year: int, latitude: float) -> DateTime:
 
 
 # reletive specific equnoxes and solstices
-def _after(datetime:DateTime, event_function: Callable) -> DateTime:
+def _after(datetime:UTCDateTime, event_function: Callable) -> UTCDateTime:
     if (event_function(datetime.year) - datetime).days >= 0:
         return event_function(datetime.year)
     else:
         return event_function(datetime.year + 1)
 
 
-def _before(datetime:DateTime, event_function: Callable) -> DateTime:
+def _before(datetime:UTCDateTime, event_function: Callable) -> UTCDateTime:
     if (event_function(datetime.year) - datetime).days < 0:
         return event_function(datetime.year)
     else:
         return event_function(datetime.year - 1)
 
 
-def march_equinox_after(datetime: DateTime) -> DateTime:
+def march_equinox_after(datetime: UTCDateTime) -> UTCDateTime:
     return _after(datetime, march_equinox)
 
 
-def march_equinox_before(datetime: DateTime) -> DateTime:
+def march_equinox_before(datetime: UTCDateTime) -> UTCDateTime:
     return _before(datetime, march_equinox)
 
 
-def june_solstice_after(datetime: DateTime) -> DateTime:
+def june_solstice_after(datetime: UTCDateTime) -> UTCDateTime:
     return _after(datetime, june_solstice)
 
 
-def june_solstice_before(datetime: DateTime) -> DateTime:
+def june_solstice_before(datetime: UTCDateTime) -> UTCDateTime:
     return _before(datetime, june_solstice)
 
 
-def september_equinox_after(datetime: DateTime) -> DateTime:
+def september_equinox_after(datetime: UTCDateTime) -> UTCDateTime:
     return _after(datetime, september_equinox)
 
 
-def september_equinox_before(datetime: DateTime) -> DateTime:
+def september_equinox_before(datetime: UTCDateTime) -> UTCDateTime:
     return _before(datetime, september_equinox)
 
 
-def december_solstice_after(datetime: DateTime) -> DateTime:
+def december_solstice_after(datetime: UTCDateTime) -> UTCDateTime:
     return _after(datetime, december_solstice)
 
 
-def december_solstice_before(datetime: DateTime) -> DateTime:
+def december_solstice_before(datetime: UTCDateTime) -> UTCDateTime:
     return _before(datetime, december_solstice)
 
 
 # reletive seasonal equinoxes and solstices
-def spring_equinox_after(datetime: DateTime, latitude) -> DateTime:
+def spring_equinox_after(datetime: UTCDateTime, latitude) -> UTCDateTime:
     return _after(datetime, partial(spring_equinox, latitude=latitude))
 
 
-def spring_equinox_before(datetime: DateTime, latitude) -> DateTime:
+def spring_equinox_before(datetime: UTCDateTime, latitude) -> UTCDateTime:
     return _before(datetime, partial(spring_equinox, latitude=latitude))
 
 
-def summer_solstice_after(datetime: DateTime, latitude) -> DateTime:
+def summer_solstice_after(datetime: UTCDateTime, latitude) -> UTCDateTime:
     return _after(datetime, partial(summer_solstice, latitude=latitude))
 
 
-def summer_solstice_before(datetime: DateTime, latitude) -> DateTime:
+def summer_solstice_before(datetime: UTCDateTime, latitude) -> UTCDateTime:
     return _before(datetime, partial(summer_solstice, latitude=latitude))
 
 
-def fall_equinox_after(datetime: DateTime, latitude) -> DateTime:
+def fall_equinox_after(datetime: UTCDateTime, latitude) -> UTCDateTime:
     return _after(datetime, partial(fall_equinox, latitude=latitude))
 
 
-def fall_equinox_before(datetime: DateTime, latitude) -> DateTime:
+def fall_equinox_before(datetime: UTCDateTime, latitude) -> UTCDateTime:
     return _before(datetime, partial(fall_equinox, latitude=latitude))
 
 
-def winter_solstice_after(datetime: DateTime, latitude) -> DateTime:
+def winter_solstice_after(datetime: UTCDateTime, latitude) -> UTCDateTime:
     return _after(datetime, partial(winter_solstice, latitude=latitude))
 
 
-def winter_solstice_before(datetime: DateTime, latitude) -> DateTime:
+def winter_solstice_before(datetime: UTCDateTime, latitude) -> UTCDateTime:
     return _before(datetime, partial(winter_solstice, latitude=latitude))
 
 
-def nearest_day_at_time_to_datetime(time: Time, target_datetime: DateTime) -> DateTime:
+def nearest_day_at_time_to_datetime(time: Time, target_datetime: UTCDateTime) -> UTCDateTime:
     half_day_in_seconds = 12 * 60 * 60
     target_date = target_datetime.date()
 
-    choice1 = DateTime.combine(target_date, time)
+    choice1 = UTCDateTime.combine(target_date, time)
     choice1_diff = abs(target_datetime - choice1)
     if choice1_diff.days == 0 and choice1_diff.seconds <= half_day_in_seconds:
         return choice1
@@ -201,6 +199,3 @@ def nearest_day_at_time_to_datetime(time: Time, target_datetime: DateTime) -> Da
     choice3_diff = abs(target_datetime - choice3)
     if choice3_diff.days == 0 and choice3_diff.seconds <= half_day_in_seconds:
         return choice3
-
-
-
