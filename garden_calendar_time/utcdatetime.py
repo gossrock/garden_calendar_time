@@ -47,3 +47,7 @@ class UTCDateTime(datetime.datetime):
     @classmethod
     def combine(cls, date: datetime.date, time: datetime.time, tzinfo: Optional[datetime.tzinfo] = ...) -> 'UTCDateTime':
         return cls._convert(datetime.datetime.combine(date, time))
+
+    @classmethod
+    def fromtimestamp(cls, timestamp: float, tzinfo: datetime.tzinfo = UTC) -> 'UTCDateTime':
+        return cls._convert(datetime.datetime.fromtimestamp(timestamp, tzinfo))
