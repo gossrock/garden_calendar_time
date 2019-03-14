@@ -51,3 +51,10 @@ class UTCDateTime(datetime.datetime):
     @classmethod
     def fromtimestamp(cls, timestamp: float, tzinfo: datetime.tzinfo = UTC) -> 'UTCDateTime':
         return cls._convert(datetime.datetime.fromtimestamp(timestamp, tzinfo))
+
+
+def parse_iso_date(iso_str) -> UTCDateTime:
+    date, time = iso_str.split('T')
+    year, month, day = date.split('-')
+    hour, min, sec = time.split(':')
+    return UTCDateTime(int(year), int(month), int(day), int(hour), int(min), int(sec))

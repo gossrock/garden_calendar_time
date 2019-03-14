@@ -5,7 +5,7 @@ from typing import Dict, Callable
 from functools import partial
 
 from garden_calendar_time.location import LatLong
-from garden_calendar_time.utcdatetime import UTCDateTime, Time, TimeDelta
+from garden_calendar_time.utcdatetime import UTCDateTime, Time, TimeDelta, parse_iso_date
 
 class YearEquinoxSolsticData(NamedTuple):
     year: int
@@ -14,12 +14,6 @@ class YearEquinoxSolsticData(NamedTuple):
     september_equinox: UTCDateTime
     december_solstice: UTCDateTime
 
-
-def parse_iso_date(iso_str) -> UTCDateTime:
-    date, time = iso_str.split('T')
-    year, month, day = date.split('-')
-    hour, min, sec = time.split(':')
-    return UTCDateTime(int(year), int(month), int(day), int(hour), int(min), int(sec))
 
 def nearest_day_at_time_to_datetime(time: Time, target_datetime: UTCDateTime) -> UTCDateTime:
     half_day_in_seconds = 12 * 60 * 60
