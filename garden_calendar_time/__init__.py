@@ -1,53 +1,29 @@
-from typing import NamedTuple, Optional
+from typing import NamedTuple, Optional, Callable, List
 from typing import Union
 
 from time import time as current_timestamp
 from time import sleep
 
+from garden_calendar_time.location import LatLong
 from garden_calendar_time.utcdatetime import UTC, UTCDateTime, UTCTime, Date, TimeDelta
 
-from garden_calendar_time.equinox_solstice import spring_equinox_before, nearest_day_at_time_to_datetime
+import garden_calendar_time.equinox_solstice as es
 
 SECONDS_IN_DAY = 24*60*60
 
 
-class LatLong:
-    _lat: float
-    _long: float
 
-    def __init__(self, lat: float, long: float) -> None:
-        # adjust long to be -180 < long <= 180
-        fixed_long = long % 360
-        if fixed_long > 180:
-            fixed_long -= 360
-        self._long = fixed_long
 
-        # adjust lat to be -90 <= lat <= 90
-        fixed_lat = lat % 360
-        if 90 < fixed_lat <= 180:
-            # move horizotally to quadrent I
-            fixed_lat = abs(fixed_lat - 180)
-        elif 180 < fixed_lat < 360:
-            # make negitive representation
-            fixed_lat -= 360
-            if -180 < fixed_lat < -90:
-                # move horizontally to quadernt IV (negitive representation)
-                fixed_lat = -(fixed_lat + 180)
-        self._lat = fixed_lat
-
-    @property
-    def lat(self):
-        return self._lat
-
-    @property
-    def long(self):
-        return self._long
+class CalendarProperties(NamedTuple):
+    start_event_name: str
+    start_event_function: Callable
+    day_start_offset: float
 
 
 class GardenDateTime:
     _timestamp: float  # seconds since the Epoch
     _location: LatLong
-    _day_start_offset: float
+    _calendar_properties: CalendarProperties
     # cached calculations
     _year_start: UTCDateTime
     _days: float
@@ -55,11 +31,11 @@ class GardenDateTime:
     def __init__(self,
                  location: LatLong,
                  datetime: Union[float, UTCDateTime, 'GardenDateTime'],
-                 day_start_offset: float = -0.25,
+                 calendar_properties: CalendarProperties = CalendarProperties('SE', es.spring_equinox_before, -0.25),
                  _year_start: Optional[UTCDateTime] = None) -> None:
         self.timestamp = datetime
         self._location = location
-        self._day_start_offset = day_start_offset
+        self._calendar_properties = calendar_properties
         self._year_start = _year_start
 
     @property
@@ -80,6 +56,9 @@ class GardenDateTime:
         elif isinstance(datetime, GardenDateTime):
             self._timestamp = datetime._timestamp
 
+    def refresh(self) -> None:
+        self.timestamp = current_timestamp()
+
     @property
     def location(self) -> LatLong:
         return self._location
@@ -90,7 +69,7 @@ class GardenDateTime:
 
     @property
     def day_start_offset(self) -> float:
-        return self._day_start_offset
+        return self._calendar_properties.day_start_offset
 
     @property
     def total_offset(self) -> float:
@@ -103,11 +82,9 @@ class GardenDateTime:
     @property
     def year_start(self) -> UTCDateTime:
         if self._year_start is None:
-            most_recent_spring_equinox = spring_equinox_before(UTCDateTime.fromtimestamp(self._timestamp), self._location.lat)
-            time_after_offset = (UTCDateTime.combine(Date.today(), UTCTime(0)) + TimeDelta(days=self.total_offset)).time()
-
-            date_time_of_start_of_current_year = nearest_day_at_time_to_datetime(time_after_offset, most_recent_spring_equinox)
-
+            most_recent_year_start_event = self._calendar_properties.start_event_function(UTCDateTime.fromtimestamp(self._timestamp), self._location)
+            time_after_offset = (UTCDateTime.combine(Date.today(), UTCTime(0)) - TimeDelta(days=self.total_offset)).time()
+            date_time_of_start_of_current_year = es.nearest_day_at_time_to_datetime(time_after_offset, most_recent_year_start_event)
             self._year_start = date_time_of_start_of_current_year
         return self._year_start
 
@@ -118,7 +95,7 @@ class GardenDateTime:
         return self._days
 
     def days_place(self, place_exp) -> int:
-        return int(((self.days * (10**(- place_exp))) % 10) // 1)
+        return int(((abs(self.days) * (10**(- place_exp))) % 10) // 1)
 
     @property
     def dec_day_hour(self) -> str:
@@ -134,21 +111,34 @@ class GardenDateTime:
 
 
     def __str__(self) -> str:
-        return f'{self.year} SE +{int(self.days)}.{self.dec_day_hour}:{self.dec_day_min}:{self.dec_day_sec}'
+        return f'{self.year} {self._calendar_properties.start_event_name} {int(self.days):+}.{self.dec_day_hour}:{self.dec_day_min}:{self.dec_day_sec}'
+
+    def __gt__(self, other) -> bool:
+        return self.timestamp > other.timestamp
 
 
 
 class GardenClock:
     location: LatLong
     _year_start: UTCDateTime
+    _calendar_properties: CalendarProperties
+    _current_time: GardenDateTime
 
-    def __init__(self, location: LatLong) -> None:
+    def __init__(self, location: LatLong, calendar_properties: CalendarProperties) -> None:
         self.location = location
-        self._year_start = GardenDateTime(location, current_timestamp()).year_start
+        self._calendar_properties = calendar_properties
+        self._current_time = GardenDateTime(location, current_timestamp(), calendar_properties)
+        self._year_start = self._current_time.year_start
+
 
     @property
     def current_time(self) -> GardenDateTime:
-        return GardenDateTime(self.location, datetime=current_timestamp(), _year_start=self._year_start)
+        if self._current_time is None:
+            self._current_time = GardenDateTime(self.location, current_timestamp(), self._calendar_properties, _year_start=self._year_start)
+            return self._current_time
+        else:
+            self._current_time.refresh()
+            return self._current_time
 
     def run(self, refresh_time: float) -> None:
         print()
@@ -156,9 +146,59 @@ class GardenClock:
             print(f'\r{self.current_time}', end='')
             sleep(refresh_time)
 
+class AllGardenClocks:
+    location: LatLong
+    clocks: List[GardenDateTime]
+
+    def __init__(self, location: LatLong, day_start_offset: int):
+        self.location = location
+        clocks = []
+        cp = CalendarProperties('SE+', es.spring_equinox_before, day_start_offset)
+        clocks.append(GardenDateTime(self.location, current_timestamp(), cp))
+        cp = CalendarProperties('SS+', es.summer_solstice_before, day_start_offset)
+        clocks.append(GardenDateTime(self.location, current_timestamp(), cp))
+        cp = CalendarProperties('FE+', es.fall_equinox_before, day_start_offset)
+        clocks.append(GardenDateTime(self.location, current_timestamp(), cp))
+        cp = CalendarProperties('WS+', es.winter_solstice_before, day_start_offset)
+        clocks.append(GardenDateTime(self.location, current_timestamp(), cp))
+        cp = CalendarProperties('SE-', es.spring_equinox_after, day_start_offset)
+        clocks.append(GardenDateTime(self.location, current_timestamp(), cp))
+        cp = CalendarProperties('SS-', es.summer_solstice_after, day_start_offset)
+        clocks.append(GardenDateTime(self.location, current_timestamp(), cp))
+        cp = CalendarProperties('FE-', es.fall_equinox_after, day_start_offset)
+        clocks.append(GardenDateTime(self.location, current_timestamp(), cp))
+        cp = CalendarProperties('WS-', es.winter_solstice_after, day_start_offset)
+        clocks.append(GardenDateTime(self.location, current_timestamp(), cp))
+        self.clocks = clocks
+
+    def refresh_clocks(self) -> None:
+        for clock in self.clocks:
+            clock.refresh()
+        self.clocks.sort()
+
+
+    def run(self, refresh_time: float = 1) -> None:
+        while True:
+            self.refresh_clocks()
+            for clock in self.clocks:
+                print(f'{clock}')
+            sleep(refresh_time)
+            print('\033[F' * len(self.clocks), end='')
+
+
 
 if __name__ == '__main__':
-    garden_clock = GardenClock(LatLong(34, -85))
+    '''
+    from garden_calendar_time.equinox_solstice import winter_solstice_before
+    calendar_properties = CalendarProperties('DS', es.december_solstice_before, 0)
+    print(calendar_properties)
+    garden_clock = GardenClock(LatLong(34, -85), calendar_properties)
     garden_clock.run(0.432)
+    '''
+    from datetime import timezone, timedelta, datetime
+    now = datetime.now(tz=timezone(timedelta(hours=-4)))
+    partial_day = now.hour/24 + now.minute/(24*60) + now.second/(24*60*60)
+    location = LatLong(34, -60)
+    AllGardenClocks(location, -0.25).run(0.432)
 
 
