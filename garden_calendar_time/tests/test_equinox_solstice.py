@@ -1,7 +1,11 @@
 from garden_calendar_time.utcdatetime import UTCDateTime as DateTime
 from garden_calendar_time.utcdatetime import UTCTime as Time
 
+from garden_calendar_time.location import LatLong
 import garden_calendar_time.equinox_solstice as es
+
+LOC1 = LatLong(45, 45)
+LOC2 = LatLong(-45, -45)
 
 YEAR1 = es.YearEquinoxSolsticData(2000,
                                   DateTime(2000, 3, 20, 7, 35),
@@ -43,20 +47,20 @@ def test_decemeber_solstice() -> None:
     assert es.december_solstice(YEAR2.year) == YEAR2.december_solstice
 
 def test_spring_equinox() -> None:
-    assert es.spring_equinox(YEAR1.year, 45) == YEAR1.march_equinox
-    assert es.spring_equinox(YEAR2.year, -45) == YEAR2.september_equinox
+    assert es.spring_equinox(YEAR1.year, LOC1) == YEAR1.march_equinox
+    assert es.spring_equinox(YEAR2.year, LOC2) == YEAR2.september_equinox
 
 def test_summer_solstice() -> None:
-    assert es.summer_solstice(YEAR1.year, 45) == YEAR1.june_solstice
-    assert es.summer_solstice(YEAR2.year, -45) == YEAR2.december_solstice
+    assert es.summer_solstice(YEAR1.year, LOC1) == YEAR1.june_solstice
+    assert es.summer_solstice(YEAR2.year, LOC2) == YEAR2.december_solstice
 
 def test_fall_equinox() -> None:
-    assert es.fall_equinox(YEAR1.year, 45) == YEAR1.september_equinox
-    assert es.fall_equinox(YEAR2.year, -45) == YEAR2.march_equinox
+    assert es.fall_equinox(YEAR1.year, LOC1) == YEAR1.september_equinox
+    assert es.fall_equinox(YEAR2.year, LOC2) == YEAR2.march_equinox
 
 def test_winter_solstice() -> None:
-    assert es.winter_solstice(YEAR1.year, 45) == YEAR1.december_solstice
-    assert es.winter_solstice(YEAR2.year, -45) == YEAR2.june_solstice
+    assert es.winter_solstice(YEAR1.year, LOC1) == YEAR1.december_solstice
+    assert es.winter_solstice(YEAR2.year, LOC2) == YEAR2.june_solstice
 
 def test_march_equinox_after() -> None:
     assert es.march_equinox_after(DateTime(YEAR1.year, 1, 1)) == YEAR1.march_equinox
@@ -100,83 +104,83 @@ def test_december_solstice_before() -> None:
 
 
 def test_spring_equinox_after() -> None:
-    assert es.spring_equinox_after(DateTime(YEAR1.year, 1, 1), latitude=45) == YEAR1.march_equinox
-    assert es.spring_equinox_after(YEAR1.march_equinox, latitude=45) == YEAR1.march_equinox
-    assert es.spring_equinox_after(DateTime(YEAR1.year, 3, 31), latitude=45) == YEAR2.march_equinox
+    assert es.spring_equinox_after(DateTime(YEAR1.year, 1, 1), LOC1) == YEAR1.march_equinox
+    assert es.spring_equinox_after(YEAR1.march_equinox, LOC1) == YEAR1.march_equinox
+    assert es.spring_equinox_after(DateTime(YEAR1.year, 3, 31), LOC1) == YEAR2.march_equinox
 
-    assert es.spring_equinox_after(DateTime(YEAR1.year, 1, 1), latitude=-45) == YEAR1.september_equinox
-    assert es.spring_equinox_after(YEAR1.september_equinox, latitude=-45) == YEAR1.september_equinox
-    assert es.spring_equinox_after(DateTime(YEAR1.year, 9, 30), latitude=-45) == YEAR2.september_equinox
+    assert es.spring_equinox_after(DateTime(YEAR1.year, 1, 1), LOC2) == YEAR1.september_equinox
+    assert es.spring_equinox_after(YEAR1.september_equinox, LOC2) == YEAR1.september_equinox
+    assert es.spring_equinox_after(DateTime(YEAR1.year, 9, 30), LOC2) == YEAR2.september_equinox
 
 
 def test_spring_equinox_before() -> None:
-    assert es.spring_equinox_before(DateTime(YEAR2.year, 1, 1), latitude=45) == YEAR1.march_equinox
-    assert es.spring_equinox_before(YEAR2.march_equinox, latitude=45) == YEAR1.march_equinox
-    assert es.spring_equinox_before(DateTime(YEAR2.year, 3, 31), latitude=45) == YEAR2.march_equinox
+    assert es.spring_equinox_before(DateTime(YEAR2.year, 1, 1), LOC1) == YEAR1.march_equinox
+    assert es.spring_equinox_before(YEAR2.march_equinox, LOC1) == YEAR1.march_equinox
+    assert es.spring_equinox_before(DateTime(YEAR2.year, 3, 31), LOC1) == YEAR2.march_equinox
 
-    assert es.spring_equinox_before(DateTime(YEAR2.year, 1, 1), latitude=-45) == YEAR1.september_equinox
-    assert es.spring_equinox_before(YEAR2.september_equinox, latitude=-45) == YEAR1.september_equinox
-    assert es.spring_equinox_before(DateTime(YEAR2.year, 9, 30), latitude=-45) == YEAR2.september_equinox
+    assert es.spring_equinox_before(DateTime(YEAR2.year, 1, 1), LOC2) == YEAR1.september_equinox
+    assert es.spring_equinox_before(YEAR2.september_equinox, LOC2) == YEAR1.september_equinox
+    assert es.spring_equinox_before(DateTime(YEAR2.year, 9, 30), LOC2) == YEAR2.september_equinox
 
 
 def test_summer_solstice_after() -> None:
-    assert es.summer_solstice_after(DateTime(YEAR1.year, 1, 1), latitude=45) == YEAR1.june_solstice
-    assert es.summer_solstice_after(YEAR1.june_solstice, latitude=45) == YEAR1.june_solstice
-    assert es.summer_solstice_after(DateTime(YEAR1.year, 6, 30), latitude=45) == YEAR2.june_solstice
+    assert es.summer_solstice_after(DateTime(YEAR1.year, 1, 1), LOC1) == YEAR1.june_solstice
+    assert es.summer_solstice_after(YEAR1.june_solstice, LOC1) == YEAR1.june_solstice
+    assert es.summer_solstice_after(DateTime(YEAR1.year, 6, 30), LOC1) == YEAR2.june_solstice
 
-    assert es.summer_solstice_after(DateTime(YEAR1.year, 1, 1), latitude=-45) == YEAR1.december_solstice
-    assert es.summer_solstice_after(YEAR1.december_solstice, latitude=-45) == YEAR1.december_solstice
-    assert es.summer_solstice_after(DateTime(YEAR1.year, 12, 31), latitude=-45) == YEAR2.december_solstice
+    assert es.summer_solstice_after(DateTime(YEAR1.year, 1, 1), LOC2) == YEAR1.december_solstice
+    assert es.summer_solstice_after(YEAR1.december_solstice, LOC2) == YEAR1.december_solstice
+    assert es.summer_solstice_after(DateTime(YEAR1.year, 12, 31), LOC2) == YEAR2.december_solstice
 
 
 def test_summer_solstice_before() -> None:
-    assert es.summer_solstice_before(DateTime(YEAR2.year, 1, 1), latitude=45) == YEAR1.june_solstice
-    assert es.summer_solstice_before(YEAR2.june_solstice, latitude=45) == YEAR1.june_solstice
-    assert es.summer_solstice_before(DateTime(YEAR2.year, 6, 30), latitude=45) == YEAR2.june_solstice
+    assert es.summer_solstice_before(DateTime(YEAR2.year, 1, 1), LOC1) == YEAR1.june_solstice
+    assert es.summer_solstice_before(YEAR2.june_solstice, LOC1) == YEAR1.june_solstice
+    assert es.summer_solstice_before(DateTime(YEAR2.year, 6, 30), LOC1) == YEAR2.june_solstice
 
-    assert es.summer_solstice_before(DateTime(YEAR2.year, 1, 1), latitude=-45) == YEAR1.december_solstice
-    assert es.summer_solstice_before(YEAR2.december_solstice, latitude=-45) == YEAR1.december_solstice
-    assert es.summer_solstice_before(DateTime(YEAR2.year, 12, 31), latitude=-45) == YEAR2.december_solstice
+    assert es.summer_solstice_before(DateTime(YEAR2.year, 1, 1), LOC2) == YEAR1.december_solstice
+    assert es.summer_solstice_before(YEAR2.december_solstice, LOC2) == YEAR1.december_solstice
+    assert es.summer_solstice_before(DateTime(YEAR2.year, 12, 31), LOC2) == YEAR2.december_solstice
 
 
 def test_fall_equinox_after() -> None:
-    assert es.fall_equinox_after(DateTime(YEAR1.year, 1, 1), latitude=45) == YEAR1.september_equinox
-    assert es.fall_equinox_after(YEAR1.september_equinox, latitude=45) == YEAR1.september_equinox
-    assert es.fall_equinox_after(DateTime(YEAR1.year, 9, 30), latitude=45) == YEAR2.september_equinox
+    assert es.fall_equinox_after(DateTime(YEAR1.year, 1, 1), LOC1) == YEAR1.september_equinox
+    assert es.fall_equinox_after(YEAR1.september_equinox, LOC1) == YEAR1.september_equinox
+    assert es.fall_equinox_after(DateTime(YEAR1.year, 9, 30), LOC1) == YEAR2.september_equinox
 
-    assert es.fall_equinox_after(DateTime(YEAR1.year, 1, 1), latitude=-45) == YEAR1.march_equinox
-    assert es.fall_equinox_after(YEAR1.march_equinox, latitude=-45) == YEAR1.march_equinox
-    assert es.fall_equinox_after(DateTime(YEAR1.year, 3, 30), latitude=-45) == YEAR2.march_equinox
+    assert es.fall_equinox_after(DateTime(YEAR1.year, 1, 1), LOC2) == YEAR1.march_equinox
+    assert es.fall_equinox_after(YEAR1.march_equinox, LOC2) == YEAR1.march_equinox
+    assert es.fall_equinox_after(DateTime(YEAR1.year, 3, 30), LOC2) == YEAR2.march_equinox
 
 
 def test_fall_equinox_before() -> None:
-    assert es.fall_equinox_before(DateTime(YEAR2.year, 1, 1), latitude=45) == YEAR1.september_equinox
-    assert es.fall_equinox_before(YEAR2.september_equinox, latitude=45) == YEAR1.september_equinox
-    assert es.fall_equinox_before(DateTime(YEAR2.year, 9, 30), latitude=45) == YEAR2.september_equinox
+    assert es.fall_equinox_before(DateTime(YEAR2.year, 1, 1), LOC1) == YEAR1.september_equinox
+    assert es.fall_equinox_before(YEAR2.september_equinox, LOC1) == YEAR1.september_equinox
+    assert es.fall_equinox_before(DateTime(YEAR2.year, 9, 30), LOC1) == YEAR2.september_equinox
 
-    assert es.fall_equinox_before(DateTime(YEAR2.year, 1, 1), latitude=-45) == YEAR1.march_equinox
-    assert es.fall_equinox_before(YEAR2.march_equinox, latitude=-45) == YEAR1.march_equinox
-    assert es.fall_equinox_before(DateTime(YEAR2.year, 3, 30), latitude=-45) == YEAR2.march_equinox
+    assert es.fall_equinox_before(DateTime(YEAR2.year, 1, 1), LOC2) == YEAR1.march_equinox
+    assert es.fall_equinox_before(YEAR2.march_equinox, LOC2) == YEAR1.march_equinox
+    assert es.fall_equinox_before(DateTime(YEAR2.year, 3, 30), LOC2) == YEAR2.march_equinox
 
 
 def test_winter_solstice_after() -> None:
-    assert es.winter_solstice_after(DateTime(YEAR1.year, 1, 1), latitude=45) == YEAR1.december_solstice
-    assert es.winter_solstice_after(YEAR1.december_solstice, latitude=45) == YEAR1.december_solstice
-    assert es.winter_solstice_after(DateTime(YEAR1.year, 12, 30), latitude=45) == YEAR2.december_solstice
+    assert es.winter_solstice_after(DateTime(YEAR1.year, 1, 1), LOC1) == YEAR1.december_solstice
+    assert es.winter_solstice_after(YEAR1.december_solstice, LOC1) == YEAR1.december_solstice
+    assert es.winter_solstice_after(DateTime(YEAR1.year, 12, 30), LOC1) == YEAR2.december_solstice
 
-    assert es.winter_solstice_after(DateTime(YEAR1.year, 1, 1), latitude=-45) == YEAR1.june_solstice
-    assert es.winter_solstice_after(YEAR1.june_solstice, latitude=-45) == YEAR1.june_solstice
-    assert es.winter_solstice_after(DateTime(YEAR1.year, 6, 30), latitude=-45) == YEAR2.june_solstice
+    assert es.winter_solstice_after(DateTime(YEAR1.year, 1, 1), LOC2) == YEAR1.june_solstice
+    assert es.winter_solstice_after(YEAR1.june_solstice, LOC2) == YEAR1.june_solstice
+    assert es.winter_solstice_after(DateTime(YEAR1.year, 6, 30), LOC2) == YEAR2.june_solstice
 
 
 def test_winter_solstice_before() -> None:
-    assert es.winter_solstice_before(DateTime(YEAR2.year, 1, 1), latitude=45) == YEAR1.december_solstice
-    assert es.winter_solstice_before(YEAR2.december_solstice, latitude=45) == YEAR1.december_solstice
-    assert es.winter_solstice_before(DateTime(YEAR2.year, 12, 30), latitude=45) == YEAR2.december_solstice
+    assert es.winter_solstice_before(DateTime(YEAR2.year, 1, 1), LOC1) == YEAR1.december_solstice
+    assert es.winter_solstice_before(YEAR2.december_solstice, LOC1) == YEAR1.december_solstice
+    assert es.winter_solstice_before(DateTime(YEAR2.year, 12, 30), LOC1) == YEAR2.december_solstice
 
-    assert es.winter_solstice_before(DateTime(YEAR2.year, 1, 1), latitude=-45) == YEAR1.june_solstice
-    assert es.winter_solstice_before(YEAR2.june_solstice, latitude=-45) == YEAR1.june_solstice
-    assert es.winter_solstice_before(DateTime(YEAR2.year, 6, 30), latitude=-45) == YEAR2.june_solstice
+    assert es.winter_solstice_before(DateTime(YEAR2.year, 1, 1), LOC2) == YEAR1.june_solstice
+    assert es.winter_solstice_before(YEAR2.june_solstice, LOC2) == YEAR1.june_solstice
+    assert es.winter_solstice_before(DateTime(YEAR2.year, 6, 30), LOC2) == YEAR2.june_solstice
 
 
 def test_nearest_day_at_time_to_datetime() -> None:
