@@ -1,7 +1,7 @@
 import pytest
 
 from datetime import datetime, timezone, timedelta, date, time
-from garden_calendar_time.utcdatetime import UTCDateTime, UTCTime
+from garden_calendar_time.utcdatetime import UTCDateTime, UTCTime, parse_iso_date
 
 
 UTC = timezone(timedelta(0))
@@ -120,4 +120,12 @@ def test_UTCDateTime_combine(initialization_data):
     utctime = UTCTime(hour, minute, second, microsecond)
     assert UTCDateTime.combine(date_, time_) == utc_datetime
     assert UTCDateTime.combine(date_, utctime) == utc_datetime
+
+
+iso_dates = [('2000-01-01T00:00:00', UTCDateTime(2000, 1, 1, 0, 0, 0)),
+             ('2000-03-20T20:07:35', UTCDateTime(2000, 3, 20, 7, 35))]
+
+@pytest.mark.parametrize('date_iso_format, utcdatetime', iso_dates)
+def test_parse_iso_date(date_iso_format, utcdatetime):
+    assert parse_iso_date(date_iso_format), utcdatetime
 
