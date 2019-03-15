@@ -1,8 +1,7 @@
-from typing import NamedTuple, Optional, Callable, List
+from typing import NamedTuple, Optional, Callable
 from typing import Union
 
 from time import time as current_timestamp
-from time import sleep
 
 from garden_calendar_time.location import LatLong
 from garden_calendar_time.utcdatetime import UTC, UTCDateTime, UTCTime, Date, TimeDelta
@@ -115,90 +114,3 @@ class GardenDateTime:
 
     def __gt__(self, other) -> bool:
         return self.timestamp > other.timestamp
-
-
-
-class GardenClock:
-    location: LatLong
-    _year_start: UTCDateTime
-    _calendar_properties: CalendarProperties
-    _current_time: GardenDateTime
-
-    def __init__(self, location: LatLong, calendar_properties: CalendarProperties) -> None:
-        self.location = location
-        self._calendar_properties = calendar_properties
-        self._current_time = GardenDateTime(location, current_timestamp(), calendar_properties)
-        self._year_start = self._current_time.year_start
-
-
-    @property
-    def current_time(self) -> GardenDateTime:
-        if self._current_time is None:
-            self._current_time = GardenDateTime(self.location, current_timestamp(), self._calendar_properties, _year_start=self._year_start)
-            return self._current_time
-        else:
-            self._current_time.refresh()
-            return self._current_time
-
-    def run(self, refresh_time: float) -> None:
-        print()
-        while True:
-            print(f'\r{self.current_time}', end='')
-            sleep(refresh_time)
-
-class AllGardenClocks:
-    location: LatLong
-    clocks: List[GardenDateTime]
-
-    def __init__(self, location: LatLong, day_start_offset: int):
-        self.location = location
-        clocks = []
-        cp = CalendarProperties('SE+', es.spring_equinox_before, day_start_offset)
-        clocks.append(GardenDateTime(self.location, current_timestamp(), cp))
-        cp = CalendarProperties('SS+', es.summer_solstice_before, day_start_offset)
-        clocks.append(GardenDateTime(self.location, current_timestamp(), cp))
-        cp = CalendarProperties('FE+', es.fall_equinox_before, day_start_offset)
-        clocks.append(GardenDateTime(self.location, current_timestamp(), cp))
-        cp = CalendarProperties('WS+', es.winter_solstice_before, day_start_offset)
-        clocks.append(GardenDateTime(self.location, current_timestamp(), cp))
-        cp = CalendarProperties('SE-', es.spring_equinox_after, day_start_offset)
-        clocks.append(GardenDateTime(self.location, current_timestamp(), cp))
-        cp = CalendarProperties('SS-', es.summer_solstice_after, day_start_offset)
-        clocks.append(GardenDateTime(self.location, current_timestamp(), cp))
-        cp = CalendarProperties('FE-', es.fall_equinox_after, day_start_offset)
-        clocks.append(GardenDateTime(self.location, current_timestamp(), cp))
-        cp = CalendarProperties('WS-', es.winter_solstice_after, day_start_offset)
-        clocks.append(GardenDateTime(self.location, current_timestamp(), cp))
-        self.clocks = clocks
-
-    def refresh_clocks(self) -> None:
-        for clock in self.clocks:
-            clock.refresh()
-        self.clocks.sort()
-
-
-    def run(self, refresh_time: float = 1) -> None:
-        while True:
-            self.refresh_clocks()
-            for clock in self.clocks:
-                print(f'{clock}')
-            sleep(refresh_time)
-            print('\033[F' * len(self.clocks), end='')
-
-
-
-if __name__ == '__main__':
-    '''
-    from garden_calendar_time.equinox_solstice import winter_solstice_before
-    calendar_properties = CalendarProperties('DS', es.december_solstice_before, 0)
-    print(calendar_properties)
-    garden_clock = GardenClock(LatLong(34, -85), calendar_properties)
-    garden_clock.run(0.432)
-    '''
-    from datetime import timezone, timedelta, datetime
-    now = datetime.now(tz=timezone(timedelta(hours=-4)))
-    partial_day = now.hour/24 + now.minute/(24*60) + now.second/(24*60*60)
-    location = LatLong(34, -60)
-    AllGardenClocks(location, -0.25).run(0.432)
-
-
